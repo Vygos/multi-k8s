@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t vygos/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true vygos/react-test npm test
+
+after_success:
+  - docker build -t vygos/multi-client ./client
+  - docker build -t vygos/multi-nginx ./nginx
+  - docker build -t vygos/multi-server ./server
+  - docker build -t vygos/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push vygos/multi-client
+  - docker push vygos/multi-nginx
+  - docker push vygos/multi-server
+  - docker push vygos/multi-worker
+      
